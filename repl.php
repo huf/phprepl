@@ -16,12 +16,12 @@ function prompt($prompt) {
 	return fgets(STDIN);
 }
 
-function repl_eval($code) {
-	extract($GLOBALS, EXTR_SKIP);
+function repl_eval($___code) {
+	extract($GLOBALS, EXTR_REFS|EXTR_SKIP);
 	ob_start();
-	$return = eval(fixup_code($code));
-	$output = fixup_output(ob_get_clean());
-	return array($output, $return);
+	$___return = eval(fixup_code($___code));
+	$___output = fixup_output(ob_get_clean());
+	return array($___output, $___return);
 }
 
 function show_result($result) {
@@ -60,7 +60,7 @@ function fixup_code($code) {
 function weird_builtin($token) {
 	if (is_array($token)) {
 		$t = $token[0];
-		return in_array($t, array(T_ECHO, T_UNSET));
+		return in_array($t, array(T_ECHO, T_UNSET, T_GLOBAL));
 	}
 	return false;
 }
