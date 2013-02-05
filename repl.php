@@ -1,5 +1,7 @@
 <?php
 
+error_reporting(E_ALL);
+
 while (($line = prompt('<? ')) !== false) {
 	$line = trim($line);
 
@@ -46,7 +48,7 @@ function fixup_code($code) {
 		return $code;
 	}
 
-	$last_semicolon = (int) rfind_in($tokens, ';');
+	$last_semicolon = rfind_in_delimited_by($tokens, ';', '{', '}');
 
 	if (!weird_builtin($tokens[$last_semicolon+1])) {
 		array_splice($tokens, $last_semicolon+1, 0, array(' return '));
@@ -58,25 +60,44 @@ function fixup_code($code) {
 }
 
 function weird_builtin($token) {
+	static $weird_tokens = array(
+		T_ECHO => 1,
+		T_UNSET => 1,
+		T_GLOBAL => 1,
+		T_IF => 1,
+		T_WHILE => 1,
+		T_FOR => 1,
+		T_FOREACH => 1,
+		T_CLASS => 1,
+	);
 	if (is_array($token)) {
 		$t = $token[0];
-		return in_array($t, array(T_ECHO, T_UNSET, T_GLOBAL));
+		return isset($weird_tokens[ $t ]);
 	}
 	return false;
 }
 
-function rfind_in($array, $needle) {
+function rfind_in_delimited_by($array, $needle, $ld, $rd) {
 	if (!$array) {
 		return false;
 	}
 	$l = count($array);
+	$ddepth = 0;
 	for ($i = $l-1; $i >= 0; $i--) {
-		if ($array[$i] === $needle) {
+		$e = $array[$i];
+		if ($e === $ld) {
+			$ddepth++;
+		}
+		else if ($e === $rd) {
+			$ddepth--;
+		}
+		else if ($ddepth === 0 && $e === $needle) {
 			return $i;
 		}
 	}
 	return -1;
 }
+
 function tokens_to_string($tokens) {
 	$str = '';
 	foreach ($tokens as $t) {
