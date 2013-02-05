@@ -1,0 +1,9 @@
+#!/bin/sh
+
+script_path="$(readlink -f "$0")"
+script_dir="$(dirname "$script_path")"
+
+while true; do
+	rlwrap php "$script_dir/repl.php" "$@"
+	[ "$?" -eq 0 ] && break
+done
